@@ -1,0 +1,42 @@
+Flutter Web 热重载/编译报错日志
+================================
+
+触发方式：把 lib/main.dart 中 home: 后面的组件 MyHomePage 改成不存在的名字 MyHomePageXXX，保存后重新运行 flutter run -d chrome。
+
+报错原文（来自 flutter run 控制台输出）：
+
+  Flutter assets will be downloaded from https://storage.flutter-io.cn. Make sure you trust this source!
+  Launching lib/main.dart on Chrome in debug mode...
+  Waiting for connection from debug service on Chrome...
+  lib/main.dart:33:19: Error: Not a constant expression.
+        home: const MyHomePageXXX(title: 'Flutter Demo Home Page'),
+                    ^^^^^^^^^^^^^
+  Waiting for connection from debug service on Chrome...             20.6s
+  Failed to compile application.
+
+报错含义解读：
+
+  - 文件路径 + 行号 + 列号：lib/main.dart:33:19
+    表示错误位置在 lib/main.dart 文件的第 33 行、第 19 列，
+    这是定位 bug 最快的"经纬度"信息。
+
+  - Error: Not a constant expression.
+    "不是常量表达式"。原因：home: 用了 const 关键字，
+    要求后面跟一个编译期常量构造函数。
+    但 MyHomePageXXX 这个类根本不存在，无法被识别为常量。
+
+  - 指示符号 ^^^^^^^^^^^^^
+    指向 MyHomePageXXX 这个不存在的标识符。
+
+  - Failed to compile application.
+    "编译失败"。Flutter Web 在编译阶段就发现了错误，
+    所以应用根本启动不起来，Chrome 中也不会显示旧的应用，
+    而是停留在"Waiting for connection" 状态。
+
+修复方式：
+  把 MyHomePageXXX 改回 MyHomePage，重新 flutter run 即可恢复。
+
+经验：
+  - 热重载遇到"严重的代码错误"时会被拒绝，而不是把崩掉的界面硬塞给运行时。
+  - 错误信息基本都包含：文件路径、行号、列号、原因描述。
+    学会读这三样，排错能力就上来了。
